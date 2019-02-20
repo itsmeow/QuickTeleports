@@ -1,0 +1,16 @@
+[
+{
+  "modid": "quickteleports",
+  "name": "Quick Teleports",
+  "description": "This mod adds a quick and easy way to set tp request with /tpa and /tpaccept",
+  "version": "1.0.0",
+  "mcversion": "${mcversion}",
+  "url": "http://itsmeow.net16.net",
+  "updateUrl": "https://minecraft.curseforge.com/projects/quickteleports",
+  "authorList": ["its_meow"],
+  "credits": "its_meow, for programming, ideas, design, and leading(formerly known as hiotewdew)",
+  "logoFile": "quickteleports.png",
+  "screenshots": [],
+  "dependencies": []
+}
+]
