@@ -10,8 +10,8 @@ import java.util.List;
 
 import its_meow.quickteleports.QuickTeleportsMod;
 import its_meow.quickteleports.TpConfig;
+import its_meow.quickteleports.util.HereTeleport;
 import its_meow.quickteleports.util.Teleport;
-import its_meow.quickteleports.util.ToTeleport;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -21,16 +21,16 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 
-public class CommandTpa extends CommandBase {
+public class CommandTpHere extends CommandBase {
 
 	@Override
 	public String getName() {
-		return "tpa";
+		return "tpahere";
 	}
 
 	@Override
 	public String getUsage(ICommandSender sender) {
-		return "/tpa (username)";
+		return "/tpahere (username)";
 	}
 
 	@Override
@@ -45,7 +45,7 @@ public class CommandTpa extends CommandBase {
 		}
 		
 		if(args[0].equalsIgnoreCase(sender.getName())) {
-			throw new CommandException(RED + "You cannot teleport to yourself!");
+			throw new CommandException(RED + "You cannot send a teleport request to yourself!");
 		}
 		
 		EntityPlayerMP targetPlayer = server.getPlayerList().getPlayerByUsername(args[0]);
@@ -59,10 +59,10 @@ public class CommandTpa extends CommandBase {
 			QuickTeleportsMod.notifyCanceledTP(remove);
 		}
 		
-		ToTeleport teleport = new ToTeleport(sender.getName(), args[0]);
-		QuickTeleportsMod.tps.put(teleport, TpConfig.tp_request_timeout * 20);
-		targetPlayer.sendMessage(new TextComponentString(GREEN + sender.getName() + GOLD + " has requested to teleport to you. Type " + YELLOW + "/tpaccept" + GOLD +" to accept."));
-		sender.sendMessage(new TextComponentString(GOLD + "Requested to teleport to " + GREEN + args[0] + GOLD + "."));
+		HereTeleport tp = new HereTeleport(sender.getName(), args[0]);
+		QuickTeleportsMod.tps.put(tp, TpConfig.tp_request_timeout * 20);
+		targetPlayer.sendMessage(new TextComponentString(GREEN + sender.getName() + GOLD + " has requested that you teleport to them. Type " + YELLOW + "/tpaccept" + GOLD +" to accept."));
+		sender.sendMessage(new TextComponentString(GOLD + "Requested " + GREEN + args[0] + GOLD + " to teleport to you."));
 	}
 	
 	@Override

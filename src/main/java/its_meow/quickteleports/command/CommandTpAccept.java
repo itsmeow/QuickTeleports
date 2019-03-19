@@ -1,9 +1,12 @@
 package its_meow.quickteleports.command;
 
-import org.apache.commons.lang3.tuple.Pair;
+import static net.minecraft.util.text.TextFormatting.GREEN;
+import static net.minecraft.util.text.TextFormatting.RED;
 
 import its_meow.quickteleports.BasicTeleporter;
 import its_meow.quickteleports.QuickTeleportsMod;
+import its_meow.quickteleports.util.Teleport;
+import its_meow.quickteleports.util.ToTeleport;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -12,7 +15,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
-import static net.minecraft.util.text.TextFormatting.*;
 
 public class CommandTpAccept extends CommandBase {
 
@@ -37,47 +39,50 @@ public class CommandTpAccept extends CommandBase {
 			throw new WrongUsageException(this.getUsage(sender));
 		}
 
-		Pair<String, String> pair = null;
-		for(Pair<String, String> pairI : QuickTeleportsMod.tps.keySet()) {
-			if(pairI.getRight().equalsIgnoreCase(sender.getName())) {
-				pair = pairI;
-			}
-		}
-		
-		if(pair == null) {
+		Teleport tp = QuickTeleportsMod.getSubjectTP(sender.getName());
+
+		if(tp == null) {
 			throw new CommandException(RED + "You have no pending teleport requests!");
 		}
-		
-		String tper = pair.getLeft();
-		QuickTeleportsMod.tps.remove(pair);
-		EntityPlayer playerTPDTO = (EntityPlayer) sender;
-		EntityPlayerMP playerTPER = server.getPlayerList().getPlayerByUsername(tper);
-		
-		if(playerTPER == null) {
-			throw new CommandException(RED + "The player that requested teleport no longer exists!");
-		}
-		
-		sender.sendMessage(new TextComponentString(GREEN + "Teleport request accepted."));
-		playerTPER.sendMessage(new TextComponentString(GREEN + "Your teleport request has been accepted."));
-		
-		int destID = playerTPDTO.getEntityWorld().provider.getDimension();
-		int oldID = playerTPER.getEntityWorld().provider.getDimension();
-		if(destID != oldID) {
-			server.getPlayerList().transferPlayerToDimension(playerTPER, destID, new BasicTeleporter(server.getWorld(destID)));
-		}
-		
-		double posX = playerTPDTO.posX;
-		double posY = playerTPDTO.posY;
-		double posZ = playerTPDTO.posZ;
-		float yaw = playerTPDTO.rotationYaw;
-		
-		playerTPER.setLocationAndAngles(posX, posY, posZ, yaw, 0.0F);
-		playerTPER.setPositionAndUpdate(posX, posY, posZ);
-		playerTPER.setRotationYawHead(yaw);
-		playerTPER.motionX = 0.0D;
-		playerTPER.motionY = 0.0D;
-		playerTPER.motionZ = 0.0D;
 
+		QuickTeleportsMod.tps.remove(tp);
+		EntityPlayerMP playerRequesting = server.getPlayerList().getPlayerByUsername(tp.getRequester());
+		EntityPlayerMP playerMoving = server.getPlayerList().getPlayerByUsername(tp.getSubject());
+
+		if(playerMoving == null) {
+			throw new CommandException(RED + "The player that is teleporting no longer exists!");
+		}
+		
+		if(tp instanceof ToTeleport) {
+			EntityPlayerMP holder = playerMoving;
+			playerMoving = playerRequesting;
+			playerRequesting = holder;
+		}
+
+		playerRequesting.sendMessage(new TextComponentString(GREEN + "Teleport request accepted."));
+		playerMoving.sendMessage(new TextComponentString(GREEN + (tp instanceof ToTeleport ? "Your teleport request has been accepted." : "You are now being teleported.")));
+
+		int destID = playerRequesting.getEntityWorld().provider.getDimension();
+		moveIfDifferentID(server, playerMoving, destID);
+
+		double posX = playerRequesting.posX;
+		double posY = playerRequesting.posY;
+		double posZ = playerRequesting.posZ;
+		float yaw = playerRequesting.rotationYaw;
+
+		playerMoving.setLocationAndAngles(posX, posY, posZ, yaw, 0.0F);
+		playerMoving.setPositionAndUpdate(posX, posY, posZ);
+		playerMoving.setRotationYawHead(yaw);
+		playerMoving.motionX = 0.0D;
+		playerMoving.motionY = 0.0D;
+		playerMoving.motionZ = 0.0D;
+	}
+	
+	private static void moveIfDifferentID(MinecraftServer server, EntityPlayerMP moved, int destination) {
+		int current = moved.getEntityWorld().provider.getDimension();
+		if(destination != current) {
+			server.getPlayerList().transferPlayerToDimension(moved, destination, new BasicTeleporter(server.getWorld(destination)));
+		}
 	}
 
 }
