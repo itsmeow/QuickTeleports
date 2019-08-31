@@ -22,15 +22,15 @@ import its_meow.quickteleports.util.ToTeleport;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.GameProfileArgument;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.dimension.DimensionType;
+import net.minecraftforge.event.TickEvent.ServerTickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
@@ -75,7 +75,7 @@ public class QuickTeleportsMod {
                 return 0;
             }
             String sourceName = command.getSource().asPlayer().getName().getString();
-            EntityPlayerMP targetPlayer = event.getServer().getPlayerList().getPlayerByUUID(profile.getId());
+            ServerPlayerEntity targetPlayer = event.getServer().getPlayerList().getPlayerByUUID(profile.getId());
             Teleport remove = QuickTeleportsMod.getRequestTP(sourceName);
             if(remove != null) {
                 QuickTeleportsMod.tps.remove(remove);
@@ -107,8 +107,8 @@ public class QuickTeleportsMod {
             }
 
             QuickTeleportsMod.tps.remove(tp);
-            EntityPlayerMP playerRequesting = event.getServer().getPlayerList().getPlayerByUsername(tp.getRequester());
-            EntityPlayerMP playerMoving = event.getServer().getPlayerList().getPlayerByUsername(tp.getSubject());
+            ServerPlayerEntity playerRequesting = event.getServer().getPlayerList().getPlayerByUsername(tp.getRequester());
+            ServerPlayerEntity playerMoving = event.getServer().getPlayerList().getPlayerByUsername(tp.getSubject());
 
             if(playerMoving == null) {
                 sendMessage(command.getSource(), new FTC(RED, "The player that is teleporting no longer exists!"));
@@ -116,7 +116,7 @@ public class QuickTeleportsMod {
             }
             
             if(tp instanceof ToTeleport) {
-                EntityPlayerMP holder = playerMoving;
+                ServerPlayerEntity holder = playerMoving;
                 playerMoving = playerRequesting;
                 playerRequesting = holder;
             }
@@ -129,7 +129,7 @@ public class QuickTeleportsMod {
             double posY = playerRequesting.posY;
             double posZ = playerRequesting.posZ;
             if(dim != playerMoving.getServerWorld().getDimension().getType().getId()){
-                playerMoving.server.getPlayerList().changePlayerDimension(playerMoving, DimensionType.getById(dim));
+                playerMoving.changeDimension(DimensionType.getById(dim));
             }
             playerMoving.setLocationAndAngles(posX, posY, posZ, playerRequesting.rotationYaw, 0);
             playerMoving.setPositionAndUpdate(posX, posY, posZ);
@@ -164,7 +164,7 @@ public class QuickTeleportsMod {
                 QuickTeleportsMod.tps.remove(remove);
                 QuickTeleportsMod.notifyCanceledTP(remove);
             }
-            EntityPlayerMP targetPlayer = event.getServer().getPlayerList().getPlayerByUUID(profile.getId());
+            ServerPlayerEntity targetPlayer = event.getServer().getPlayerList().getPlayerByUUID(profile.getId());
             
             HereTeleport tp = new HereTeleport(sourceName, targetPlayer.getName().getString());
             QuickTeleportsMod.tps.put(tp, TpConfig.CONFIG.timeout.get() * 20);
@@ -176,7 +176,7 @@ public class QuickTeleportsMod {
     }
 
     private static boolean isGameProfileOnline(GameProfile profile) {
-        EntityPlayerMP player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayerByUUID(profile.getId());
+        ServerPlayerEntity player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayerByUUID(profile.getId());
         if(player != null) {
             if(ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().contains(player)) {
                 return true;
@@ -232,9 +232,10 @@ public class QuickTeleportsMod {
     }
 
     public static void notifyTimeoutTP(Teleport tp) {
+        @SuppressWarnings("resource")
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        EntityPlayerMP tper = server.getPlayerList().getPlayerByUsername(tp.getRequester());
-        EntityPlayerMP target = server.getPlayerList().getPlayerByUsername(tp.getSubject());
+        ServerPlayerEntity tper = server.getPlayerList().getPlayerByUsername(tp.getRequester());
+        ServerPlayerEntity target = server.getPlayerList().getPlayerByUsername(tp.getSubject());
         if(target != null) {
             sendMessage(target, new FTC(GOLD, "Teleport request from "), new FTC(GREEN, tp.getRequester()), new FTC(GOLD, " timed out."));
         }
@@ -244,9 +245,10 @@ public class QuickTeleportsMod {
     }
 
     public static void notifyCanceledTP(Teleport tp) {
+        @SuppressWarnings("resource")
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        EntityPlayerMP tper = server.getPlayerList().getPlayerByUsername(tp.getRequester());
-        EntityPlayerMP target = server.getPlayerList().getPlayerByUsername(tp.getSubject());
+        ServerPlayerEntity tper = server.getPlayerList().getPlayerByUsername(tp.getRequester());
+        ServerPlayerEntity target = server.getPlayerList().getPlayerByUsername(tp.getSubject());
         if(target != null) {
             sendMessage(target, new FTC(GOLD, "Teleport request from "), new FTC(GREEN, tp.getRequester()), new FTC(GOLD, " has been cancelled."));
         }
@@ -259,7 +261,7 @@ public class QuickTeleportsMod {
         sendMessage(source.asPlayer(), styled);
     }
     
-    public static void sendMessage(EntityPlayer source, ITextComponent... styled) {
+    public static void sendMessage(PlayerEntity source, ITextComponent... styled) {
         if(styled.length > 0) {
             ITextComponent comp = styled[0];
             if(styled.length > 1) {

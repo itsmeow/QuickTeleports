@@ -1,9 +1,9 @@
 package its_meow.quickteleports.util;
 
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextComponentString;
 
-public class TextComponentStyled extends TextComponentString {
+public class TextComponentStyled extends StringTextComponent {
 
     public TextComponentStyled(String msg, Style style) {
         super(msg);
