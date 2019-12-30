@@ -19,6 +19,7 @@ sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = co
 
 minecraft {
     mappings channel: project.mappings_channel, version: "${project.mappings_version}-${project.mappings_mc_version}"
+    accessTransformer = file('src/main/resources/META-INF/quickteleports_at.cfg')
 
     runs {
         client {
