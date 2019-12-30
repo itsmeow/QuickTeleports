@@ -125,9 +125,9 @@ public class QuickTeleportsMod {
             sendMessage(playerMoving, new FTC(GREEN, (tp instanceof ToTeleport ? "Your teleport request has been accepted." : "You are now being teleported.")));
             
             int dim = playerRequesting.getEntityWorld().getDimension().getType().getId();
-            double posX = playerRequesting.posX;
-            double posY = playerRequesting.posY;
-            double posZ = playerRequesting.posZ;
+            double posX = playerRequesting.func_226277_ct_();
+            double posY = playerRequesting.func_226278_cu_();
+            double posZ = playerRequesting.func_226281_cx_();
             if(dim != playerMoving.getServerWorld().getDimension().getType().getId()){
                 playerMoving.changeDimension(DimensionType.getById(dim));
             }
