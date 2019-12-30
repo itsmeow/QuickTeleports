@@ -42,7 +42,7 @@ public class QuickTeleportsMod {
 	@Nullable
 	public static Teleport getSubjectTP(String name) {
 		for(Teleport pair : QuickTeleportsMod.tps.keySet()) {
-			if(pair.getSubject().equals(name)) {
+			if(pair.getSubject().equalsIgnoreCase(name)) {
 				return pair;
 			}
 		}
@@ -52,7 +52,7 @@ public class QuickTeleportsMod {
 	@Nullable
 	public static Teleport getRequestTP(String name) {
 		for(Teleport pair : QuickTeleportsMod.tps.keySet()) {
-			if(pair.getRequester().equals(name)) {
+			if(pair.getRequester().equalsIgnoreCase(name)) {
 				return pair;
 			}
 		}
