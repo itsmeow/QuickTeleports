@@ -297,7 +297,7 @@ public class QuickTeleportsMod {
                 entityPlayer.invulnerableDimensionChange = true;
                 // End Access Transformer
                 WorldInfo worldinfo = entityPlayer.world.getWorldInfo();
-                entityPlayer.connection.sendPacket(new SRespawnPacket(dimensionTo, worldinfo.getGenerator(),
+                entityPlayer.connection.sendPacket(new SRespawnPacket(dimensionTo, WorldInfo.func_227498_c_(worldinfo.getSeed()), worldinfo.getGenerator(),
                 entityPlayer.interactionManager.getGameType()));
                 entityPlayer.connection.sendPacket(
                 new SServerDifficultyPacket(worldinfo.getDifficulty(), worldinfo.isDifficultyLocked()));
