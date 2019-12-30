@@ -22,11 +22,19 @@ import its_meow.quickteleports.util.ToTeleport;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.GameProfileArgument;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.play.server.SPlayerAbilitiesPacket;
+import net.minecraft.network.play.server.SRespawnPacket;
+import net.minecraft.network.play.server.SServerDifficultyPacket;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.management.PlayerList;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.storage.WorldInfo;
 import net.minecraftforge.event.TickEvent.ServerTickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -129,7 +137,7 @@ public class QuickTeleportsMod {
             double posY = playerRequesting.func_226278_cu_();
             double posZ = playerRequesting.func_226281_cx_();
             if(dim != playerMoving.getServerWorld().getDimension().getType().getId()){
-                playerMoving.changeDimension(DimensionType.getById(dim));
+                teleport(playerMoving, DimensionType.getById(dim));
             }
             playerMoving.setLocationAndAngles(posX, posY, posZ, playerRequesting.rotationYaw, 0);
             playerMoving.setPositionAndUpdate(posX, posY, posZ);
@@ -271,6 +279,61 @@ public class QuickTeleportsMod {
             }
             source.sendMessage(comp);
         }
+    }
+    
+    @SuppressWarnings("resource")
+    public static Entity teleport(Entity entityIn, DimensionType dimensionTo) {
+        if(!net.minecraftforge.common.ForgeHooks.onTravelToDimension(entityIn, dimensionTo)) {
+            return null;
+        }
+        if(!entityIn.getEntityWorld().isRemote && entityIn.isAlive()) {
+            final ServerWorld worldFrom = entityIn.getServer().getWorld(entityIn.dimension);
+            final ServerWorld worldTo = entityIn.getServer().getWorld(dimensionTo);
+            entityIn.dimension = dimensionTo;
+
+            if(entityIn instanceof ServerPlayerEntity) {
+                final ServerPlayerEntity entityPlayer = (ServerPlayerEntity) entityIn;
+                // Access Transformer exposes this field
+                entityPlayer.invulnerableDimensionChange = true;
+                // End Access Transformer
+                WorldInfo worldinfo = entityPlayer.world.getWorldInfo();
+                entityPlayer.connection.sendPacket(new SRespawnPacket(dimensionTo, worldinfo.getGenerator(),
+                entityPlayer.interactionManager.getGameType()));
+                entityPlayer.connection.sendPacket(
+                new SServerDifficultyPacket(worldinfo.getDifficulty(), worldinfo.isDifficultyLocked()));
+                PlayerList playerlist = entityPlayer.world.getServer().getPlayerList();
+                playerlist.updatePermissionLevel(entityPlayer);
+                worldFrom.removeEntity(entityPlayer, true); // Forge: the player entity is moved to the new world, NOT cloned. So keep the data alive with no matching invalidate call.
+                entityPlayer.revive();
+                entityPlayer.setWorld(worldTo);
+                worldTo.func_217447_b(entityPlayer);
+                // entityPlayer.func_213846_b(worldFrom);
+                entityPlayer.interactionManager.setWorld(worldTo);
+                entityPlayer.connection.sendPacket(new SPlayerAbilitiesPacket(entityPlayer.abilities));
+                playerlist.sendWorldInfo(entityPlayer, worldTo);
+                playerlist.sendInventory(entityPlayer);
+
+                net.minecraftforge.fml.hooks.BasicEventHooks.firePlayerChangedDimensionEvent(entityPlayer, entityPlayer.dimension, dimensionTo);
+                // entityPlayer.clearInvulnerableDimensionChange();
+                return entityPlayer;
+            }
+
+            entityIn.detach();
+            Entity copy = entityIn.getType().create(worldTo);
+            if(copy != null) {
+                copy.copyDataFromOld(entityIn);
+                copy.setMotion(entityIn.getMotion().mul(Vec3d.fromPitchYaw(entityIn.rotationPitch, entityIn.rotationYaw).normalize()));
+                // used to unnaturally add entities to world
+                worldTo.func_217460_e(copy);
+            }
+            // update world
+            worldFrom.resetUpdateEntityTick();
+            worldTo.resetUpdateEntityTick();
+            // remove old entity
+            entityIn.remove(false);
+            return copy;
+        }
+        return null;
     }
 
 }
