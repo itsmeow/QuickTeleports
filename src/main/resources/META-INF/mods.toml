@@ -1,14 +1,20 @@
-modLoader="javafml" #mandatory
-loaderVersion="[30,)" #mandatory (30 is current forge version)
-issueTrackerURL="http://github.com/itsmeow/QuickTeleports/issues" #optional
-displayURL="https://www.curseforge.com/minecraft/mc-mods/quickteleports" #optional
-logoFile="quickteleports.png" #optional
-credits="its_meow, for programming, ideas, design, and leading" #optional
-authors="its_meow" #optional
-[[mods]] #mandatory
-modId="quickteleports" #mandatory
-version="${file.jarVersion}" #mandatory
-displayName="QuickTeleports" #mandatory
-# The description text for the mod (multi line!) (#mandatory)
+modLoader="javafml"
+loaderVersion="[33,)"
+license="CC BY-NC-SA 4.0 IPL"
+issueTrackerURL="http://github.com/itsmeow/QuickTeleports/issues"
+displayURL="https://www.curseforge.com/minecraft/mc-mods/quickteleports"
+logoFile="quickteleports.png"
+credits="its_meow, for programming, ideas, design, and leading"
+authors="its_meow"
+[[mods]]
+modId="quickteleports"
+version="${file.jarVersion}"
+displayName="QuickTeleports"
 description='''
 This mod adds a quick and easy way to send tp requests with /tpa and /tpaccept'''
+[[dependencies.quickhomes]]
+    modId="forge"
+    mandatory=true
+    versionRange="[33.0.0,)"
+    ordering="NONE"
+    side="BOTH" 

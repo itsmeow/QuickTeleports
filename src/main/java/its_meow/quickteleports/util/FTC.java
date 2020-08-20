@@ -6,11 +6,11 @@ import net.minecraft.util.text.TextFormatting;
 public class FTC extends TextComponentStyled {
 
     public FTC(String msg, TextFormatting color) {
-        super(msg, new Style().setColor(color));
+        super(msg, Style.EMPTY.withColor(color));
     }
     
     public FTC(TextFormatting color, String msg) {
-        super(msg, new Style().setColor(color));
+        super(msg, Style.EMPTY.withColor(color));
     }
     
     public FTC(TextFormatting color, Form form, String msg) {
@@ -26,23 +26,23 @@ public class FTC extends TextComponentStyled {
     }
     
     public FTC(String msg, TextFormatting color, boolean bold) {
-        super(msg, new Style().setColor(color).setBold(bold));
+        super(msg, Style.EMPTY.withColor(color).withBold(bold));
     }
     
     public FTC(String msg, TextFormatting color, boolean bold, boolean italic) {
-        super(msg, new Style().setColor(color).setBold(bold).setItalic(italic));
+        super(msg, Style.EMPTY.withColor(color).withBold(bold).withItalic(italic));
     }
     
     public FTC(String msg, boolean bold) {
-        super(msg, new Style().setBold(bold));
+        super(msg, Style.EMPTY.withBold(bold));
     }
     
     public FTC(String msg, boolean bold, boolean italic) {
-        super(msg, new Style().setBold(bold).setItalic(italic));
+        super(msg, Style.EMPTY.withBold(bold).withItalic(italic));
     }
     
     public FTC(String msg, TextFormatting color, boolean bold, boolean italic, boolean strikethrough, boolean underline) {
-        super(msg, new Style().setBold(bold).setItalic(italic).setStrikethrough(strikethrough).setUnderlined(underline));
+        super(msg, Style.EMPTY.withBold(bold).withItalic(italic).setStrikethrough(strikethrough).setUnderlined(underline));
     }
     
     public static enum Form {
@@ -71,19 +71,19 @@ public class FTC extends TextComponentStyled {
         }
 
         public Style getStyle(TextFormatting color) {
-            return getStyle().setColor(color);
+            return getStyle().withColor(color);
         }
 
         public Style getStyle() {
-            return new Style().setBold(bold).setItalic(italic).setStrikethrough(strikethrough).setUnderlined(underline);
+            return Style.EMPTY.withBold(bold).withItalic(italic).setStrikethrough(strikethrough).setUnderlined(underline);
         }
         
         public Style applyToStyle(Style style) {
-            return style.setBold(bold).setItalic(italic).setStrikethrough(strikethrough).setUnderlined(underline);
+            return style.withBold(bold).withItalic(italic).setStrikethrough(strikethrough).setUnderlined(underline);
         }
         
         public String toString() {
-            return "--(This is a bug, report this to ClaimIt with where you find it at)--";
+            return "--(This is a bug, report this to QuickTeleports with where you find it at)--";
         }
     }
 

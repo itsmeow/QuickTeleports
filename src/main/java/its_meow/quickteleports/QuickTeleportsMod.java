@@ -25,7 +25,8 @@ import net.minecraft.command.arguments.GameProfileArgument;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.Util;
+import net.minecraft.util.text.TextComponent;
 import net.minecraftforge.event.TickEvent.ServerTickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -49,7 +50,7 @@ public class QuickTeleportsMod {
 
     @SubscribeEvent
     public static void onServerStarting(FMLServerStartingEvent event) {
-        CommandDispatcher<CommandSource> d = event.getCommandDispatcher();
+        CommandDispatcher<CommandSource> d = event.getServer().getCommandManager().getDispatcher();
 
         // tpa
         d.register(Commands.literal("tpa").requires(source -> {
@@ -122,10 +123,10 @@ public class QuickTeleportsMod {
             sendMessage(playerRequesting, new FTC(GREEN, "Teleport request accepted."));
             sendMessage(playerMoving, new FTC(GREEN, (tp instanceof ToTeleport ? "Your teleport request has been accepted." : "You are now being teleported.")));
 
-            double posX = playerRequesting.func_226277_ct_();
-            double posY = playerRequesting.func_226278_cu_();
-            double posZ = playerRequesting.func_226281_cx_();
-            playerMoving.func_200619_a(playerRequesting.func_71121_q(), posX, posY, posZ, playerRequesting.rotationYaw, 0);
+            double posX = playerRequesting.getX();
+            double posY = playerRequesting.getY();
+            double posZ = playerRequesting.getZ();
+            playerMoving.teleport(playerRequesting.getServerWorld(), posX, posY, posZ, playerRequesting.rotationYaw, 0F);
             return 1;
         }));
 
@@ -225,7 +226,6 @@ public class QuickTeleportsMod {
     }
 
     public static void notifyTimeoutTP(Teleport tp) {
-        @SuppressWarnings("resource")
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         ServerPlayerEntity tper = server.getPlayerList().getPlayerByUsername(tp.getRequester());
         ServerPlayerEntity target = server.getPlayerList().getPlayerByUsername(tp.getSubject());
@@ -238,7 +238,6 @@ public class QuickTeleportsMod {
     }
 
     public static void notifyCanceledTP(Teleport tp) {
-        @SuppressWarnings("resource")
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         ServerPlayerEntity tper = server.getPlayerList().getPlayerByUsername(tp.getRequester());
         ServerPlayerEntity target = server.getPlayerList().getPlayerByUsername(tp.getSubject());
@@ -250,19 +249,19 @@ public class QuickTeleportsMod {
         }
     }
 
-    public static void sendMessage(CommandSource source, ITextComponent... styled) throws CommandSyntaxException {
+    public static void sendMessage(CommandSource source, TextComponent... styled) throws CommandSyntaxException {
         sendMessage(source.asPlayer(), styled);
     }
 
-    public static void sendMessage(PlayerEntity source, ITextComponent... styled) {
+    public static void sendMessage(PlayerEntity source, TextComponent... styled) {
         if(styled.length > 0) {
-            ITextComponent comp = styled[0];
+            TextComponent comp = styled[0];
             if(styled.length > 1) {
                 for(int i = 1; i < styled.length; i++) {
-                    comp.appendSibling(styled[i]);
+                    comp.append(styled[i]);
                 }
             }
-            source.sendMessage(comp);
+            source.sendMessage(comp, Util.NIL_UUID);
         }
     }
 
