@@ -27,6 +27,7 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Util;
 import net.minecraft.util.text.TextComponent;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent.ServerTickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -49,11 +50,18 @@ public class QuickTeleportsMod {
     }
 
     @SubscribeEvent
-    public static void onServerStarting(FMLServerStartingEvent event) {
-        CommandDispatcher<CommandSource> d = event.getServer().getCommandManager().getDispatcher();
+    public static void onRegisterCommandEvent(RegisterCommandsEvent event) {
+        registerCommands(event.getDispatcher());
+    }
 
+    @SubscribeEvent
+    public static void onServerStarting(FMLServerStartingEvent event) {
+        registerCommands(event.getServer().getCommandManager().getDispatcher());
+    }
+
+    public static void registerCommands(CommandDispatcher<CommandSource> commandDispatcher) {
         // tpa
-        d.register(Commands.literal("tpa").requires(source -> {
+        commandDispatcher.register(Commands.literal("tpa").requires(source -> {
             try {
                 return source.asPlayer() != null;
             } catch(CommandSyntaxException e) {
@@ -75,7 +83,7 @@ public class QuickTeleportsMod {
                 return 0;
             }
             String sourceName = command.getSource().asPlayer().getName().getString();
-            ServerPlayerEntity targetPlayer = event.getServer().getPlayerList().getPlayerByUUID(profile.getId());
+            ServerPlayerEntity targetPlayer = command.getSource().getServer().getPlayerList().getPlayerByUUID(profile.getId());
             Teleport remove = QuickTeleportsMod.getRequestTP(sourceName);
             if(remove != null) {
                 QuickTeleportsMod.tps.remove(remove);
@@ -90,7 +98,7 @@ public class QuickTeleportsMod {
         })));
 
         // tpaccept
-        d.register(Commands.literal("tpaccept").requires(source -> {
+        commandDispatcher.register(Commands.literal("tpaccept").requires(source -> {
             try {
                 return source.asPlayer() != null;
             } catch(CommandSyntaxException e) {
@@ -106,8 +114,8 @@ public class QuickTeleportsMod {
             }
 
             QuickTeleportsMod.tps.remove(tp);
-            ServerPlayerEntity playerRequesting = event.getServer().getPlayerList().getPlayerByUsername(tp.getRequester());
-            ServerPlayerEntity playerMoving = event.getServer().getPlayerList().getPlayerByUsername(tp.getSubject());
+            ServerPlayerEntity playerRequesting = command.getSource().getServer().getPlayerList().getPlayerByUsername(tp.getRequester());
+            ServerPlayerEntity playerMoving = command.getSource().getServer().getPlayerList().getPlayerByUsername(tp.getSubject());
 
             if(playerMoving == null) {
                 sendMessage(command.getSource(), new FTC(RED, "The player that is teleporting no longer exists!"));
@@ -131,7 +139,7 @@ public class QuickTeleportsMod {
         }));
 
         // tpahere
-        d.register(Commands.literal("tpahere").requires(source -> {
+        commandDispatcher.register(Commands.literal("tpahere").requires(source -> {
             try {
                 return source.asPlayer() != null;
             } catch(CommandSyntaxException e) {
@@ -158,7 +166,7 @@ public class QuickTeleportsMod {
                 QuickTeleportsMod.tps.remove(remove);
                 QuickTeleportsMod.notifyCanceledTP(remove);
             }
-            ServerPlayerEntity targetPlayer = event.getServer().getPlayerList().getPlayerByUUID(profile.getId());
+            ServerPlayerEntity targetPlayer = command.getSource().getServer().getPlayerList().getPlayerByUUID(profile.getId());
 
             HereTeleport tp = new HereTeleport(sourceName, targetPlayer.getName().getString());
             QuickTeleportsMod.tps.put(tp, TpConfig.CONFIG.timeout.get() * 20);
