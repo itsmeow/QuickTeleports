@@ -12,9 +12,15 @@ version="${file.jarVersion}"
 displayName="QuickTeleports"
 description='''
 This mod adds a quick and easy way to send tp requests with /tpa and /tpaccept'''
-[[dependencies.quickhomes]]
+[[dependencies.quickteleports]]
     modId="forge"
     mandatory=true
     versionRange="[33.0.0,)"
     ordering="NONE"
-    side="BOTH" 
+    side="SERVER" 
+[[dependencies.quickteleports]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.2,)"
+    ordering="NONE"
+    side="SERVER" 
