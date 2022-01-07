@@ -115,7 +115,7 @@ public class QuickTeleportsMod {
             double posX = playerRequesting.getX();
             double posY = playerRequesting.getY();
             double posZ = playerRequesting.getZ();
-            playerMoving.teleportTo(playerRequesting.getLevel(), posX, posY, posZ, playerRequesting.yRot, 0F);
+            playerMoving.teleportTo(playerRequesting.getLevel(), posX, posY, posZ, playerRequesting.getYRot(), 0F);
             return 1;
         }));
 
