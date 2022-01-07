@@ -1,22 +1,18 @@
-package its_meow.quickteleports.util;
+package dev.itsmeow.quickteleports.util;
 
-public class HereTeleport extends Teleport {
+public class HereTeleport implements Teleport {
 
 	private final String requester;
 	private final String brought;
 	
 	public HereTeleport(String requester, String brought) {
-		super(Teleport.TPType.TP_TO);
 		this.requester = requester;
 		this.brought = brought;
 	}
 
+	@Override
 	public String getRequester() {
 		return requester;
-	}
-	
-	public String getDestination() {
-		return brought;
 	}
 
 	@Override

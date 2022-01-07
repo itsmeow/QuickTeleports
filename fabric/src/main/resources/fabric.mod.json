@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "quickteleports",
+  "version": "${version}",
+  "name": "QuickTeleports",
+  "description": "This mod adds a quick and easy way to send tp requests with /tpa and /tpaccept",
+  "authors": ["itsmeowdev"],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/quickteleports",
+    "sources": "https://github.com/itsmeow/QuickTeleports",
+    "issues": "https://github.com/itsmeow/QuickTeleports/issues"
+  },
+  "license": "MIT",
+  "icon": "quickteleports.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["dev.itsmeow.quickteleports.QuickTeleportsModFabric"]
+  },
+  "depends": {
+    "minecraft": "1.16.5",
+    "fabricloader": ">=0.12.0",
+    "fabric": ">=0.32.0"
+  },
+  "mixins": [],
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.itsmeow.dev/"
+      }
+    }
+  }
+}
