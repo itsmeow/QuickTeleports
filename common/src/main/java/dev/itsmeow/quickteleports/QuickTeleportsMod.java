@@ -11,8 +11,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.GameProfileArgument;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
@@ -33,15 +33,6 @@ public class QuickTeleportsMod {
 
     public static HashMap<Teleport, Integer> tps = new HashMap<>();
 
-    public static class FTC extends TextComponent {
-
-        public FTC(ChatFormatting color, String msg) {
-            super(msg);
-            this.setStyle(Style.EMPTY.withColor(color));
-        }
-
-    }
-
     public static void registerCommands(CommandDispatcher dispatcher) {
         Predicate<CommandSourceStack> isPlayer = source -> {
             try {
@@ -56,16 +47,16 @@ public class QuickTeleportsMod {
             MinecraftServer server = player.getServer();
             Collection<GameProfile> profiles = GameProfileArgument.getGameProfiles(command, "target");
             if(profiles.size() > 1) {
-                sendMessage(command.getSource(), false, new FTC(ChatFormatting.RED, "Specify one player as an argument!"));
+                sendMessage(command.getSource(), false, Component.literal("Specify one player as an argument!").withStyle(ChatFormatting.RED));
                 return 0;
             }
             GameProfile profile = getFirstProfile(profiles);
             if(!isGameProfileOnline(server, profile)) {
-                sendMessage(command.getSource(), false, new FTC(ChatFormatting.RED, "This player is not online!"));
+                sendMessage(command.getSource(), false, Component.literal("This player is not online!").withStyle(ChatFormatting.RED));
                 return 0;
             }
             if(profile.getId().equals(player.getGameProfile().getId())) {
-                sendMessage(command.getSource(), false, new FTC(ChatFormatting.RED, "You cannot teleport to yourself!"));
+                sendMessage(command.getSource(), false, Component.literal("You cannot teleport to yourself!").withStyle(ChatFormatting.RED));
                 return 0;
             }
             String sourceName = player.getName().getString();
@@ -78,8 +69,8 @@ public class QuickTeleportsMod {
 
             ToTeleport teleport = new ToTeleport(sourceName, targetPlayer.getName().getString());
             QuickTeleportsMod.tps.put(teleport, getTeleportTimeout() * 20);
-            sendMessage(targetPlayer.createCommandSourceStack(), true, new FTC(ChatFormatting.GREEN, sourceName), new FTC(ChatFormatting.GOLD, " has requested to teleport to you. Type "), new FTC(ChatFormatting.YELLOW, "/tpaccept"), new FTC(ChatFormatting.GOLD, " to accept."));
-            sendMessage(command.getSource(), true, new FTC(ChatFormatting.GOLD, "Requested to teleport to "), new FTC(ChatFormatting.GREEN, targetPlayer.getName().getString()), new FTC(ChatFormatting.GOLD, "."));
+            sendMessage(targetPlayer.createCommandSourceStack(), true, Component.literal(sourceName).withStyle(ChatFormatting.GREEN), Component.literal(" has requested to teleport to you. Type ").withStyle(ChatFormatting.GOLD), Component.literal("/tpaccept").withStyle(ChatFormatting.YELLOW), Component.literal(" to accept.").withStyle(ChatFormatting.GOLD));
+            sendMessage(command.getSource(), true, Component.literal("Requested to teleport to ").withStyle(ChatFormatting.GOLD), Component.literal(targetPlayer.getName().getString()).withStyle(ChatFormatting.GREEN), Component.literal(".").withStyle(ChatFormatting.GOLD));
             return 1;
         })));
 
@@ -90,7 +81,7 @@ public class QuickTeleportsMod {
             Teleport tp = QuickTeleportsMod.getSubjectTP(player.getName().getString());
 
             if(tp == null) {
-                sendMessage(command.getSource(), false, new FTC(ChatFormatting.RED, "You have no pending teleport requests!"));
+                sendMessage(command.getSource(), false, ftc(ChatFormatting.RED, "You have no pending teleport requests!"));
                 return 0;
             }
 
@@ -99,7 +90,7 @@ public class QuickTeleportsMod {
             ServerPlayer playerMoving = server.getPlayerList().getPlayerByName(tp.getSubject());
 
             if(playerMoving == null) {
-                sendMessage(command.getSource(), false, new FTC(ChatFormatting.RED, "The player that is teleporting no longer exists!"));
+                sendMessage(command.getSource(), false, ftc(ChatFormatting.RED, "The player that is teleporting no longer exists!"));
                 return 0;
             }
 
@@ -109,8 +100,8 @@ public class QuickTeleportsMod {
                 playerRequesting = holder;
             }
 
-            sendMessage(playerRequesting.createCommandSourceStack(), true, new FTC(ChatFormatting.GREEN, "Teleport request accepted."));
-            sendMessage(playerMoving.createCommandSourceStack(), true, new FTC(ChatFormatting.GREEN, (tp instanceof ToTeleport ? "Your teleport request has been accepted." : "You are now being teleported.")));
+            sendMessage(playerRequesting.createCommandSourceStack(), true, ftc(ChatFormatting.GREEN, "Teleport request accepted."));
+            sendMessage(playerMoving.createCommandSourceStack(), true, ftc(ChatFormatting.GREEN, (tp instanceof ToTeleport ? "Your teleport request has been accepted." : "You are now being teleported.")));
 
             double posX = playerRequesting.getX();
             double posY = playerRequesting.getY();
@@ -125,16 +116,16 @@ public class QuickTeleportsMod {
             MinecraftServer server = player.getServer();
             Collection<GameProfile> profiles = GameProfileArgument.getGameProfiles(command, "target");
             if(profiles.size() > 1) {
-                sendMessage(command.getSource(), false, new FTC(ChatFormatting.RED, "Specify one player as an argument!"));
+                sendMessage(command.getSource(), false, ftc(ChatFormatting.RED, "Specify one player as an argument!"));
                 return 0;
             }
             GameProfile profile = getFirstProfile(profiles);
             if(!isGameProfileOnline(server, profile)) {
-                sendMessage(command.getSource(), false, new FTC(ChatFormatting.RED, "This player is not online!"));
+                sendMessage(command.getSource(), false, ftc(ChatFormatting.RED, "This player is not online!"));
                 return 0;
             }
             if(profile.getId().equals(player.getGameProfile().getId())) {
-                sendMessage(command.getSource(), false, new FTC(ChatFormatting.RED, "You cannot send a teleport request to yourself!"));
+                sendMessage(command.getSource(), false, ftc(ChatFormatting.RED, "You cannot send a teleport request to yourself!"));
                 return 0;
             }
             String sourceName = player.getName().getString();
@@ -147,11 +138,15 @@ public class QuickTeleportsMod {
 
             HereTeleport tp = new HereTeleport(sourceName, targetPlayer.getName().getString());
             QuickTeleportsMod.tps.put(tp, getTeleportTimeout() * 20);
-            sendMessage(targetPlayer.createCommandSourceStack(), true, new FTC(ChatFormatting.GREEN, sourceName), new FTC(ChatFormatting.GOLD, " has requested that you teleport to them. Type "), new FTC(ChatFormatting.YELLOW, "/tpaccept"), new FTC(ChatFormatting.GOLD, " to accept."));
-            sendMessage(command.getSource(), true, new FTC(ChatFormatting.GOLD, "Requested "), new FTC(ChatFormatting.GREEN, targetPlayer.getName().getString()), new FTC(ChatFormatting.GOLD, " to teleport to you."));
+            sendMessage(targetPlayer.createCommandSourceStack(), true, ftc(ChatFormatting.GREEN, sourceName), ftc(ChatFormatting.GOLD, " has requested that you teleport to them. Type "), ftc(ChatFormatting.YELLOW, "/tpaccept"), ftc(ChatFormatting.GOLD, " to accept."));
+            sendMessage(command.getSource(), true, ftc(ChatFormatting.GOLD, "Requested "), ftc(ChatFormatting.GREEN, targetPlayer.getName().getString()), ftc(ChatFormatting.GOLD, " to teleport to you."));
 
             return 1;
         })));
+    }
+
+    public static MutableComponent ftc(ChatFormatting format, String text) {
+        return Component.literal(text).withStyle(format);
     }
 
     @ExpectPlatform
@@ -218,10 +213,10 @@ public class QuickTeleportsMod {
         ServerPlayer tper = server.getPlayerList().getPlayerByName(tp.getRequester());
         ServerPlayer target = server.getPlayerList().getPlayerByName(tp.getSubject());
         if(target != null) {
-            sendMessage(target.createCommandSourceStack(), true, new FTC(ChatFormatting.GOLD, "Teleport request from "), new FTC(ChatFormatting.GREEN, tp.getRequester()), new FTC(ChatFormatting.GOLD, " timed out."));
+            sendMessage(target.createCommandSourceStack(), true, ftc(ChatFormatting.GOLD, "Teleport request from "), ftc(ChatFormatting.GREEN, tp.getRequester()), ftc(ChatFormatting.GOLD, " timed out."));
         }
         if(tper != null) {
-            sendMessage(tper.createCommandSourceStack(), true, new FTC(ChatFormatting.GOLD, "Your request to "), new FTC(ChatFormatting.GREEN, tp.getSubject()), new FTC(ChatFormatting.GOLD, " has timed out after not being accepted."));
+            sendMessage(tper.createCommandSourceStack(), true, ftc(ChatFormatting.GOLD, "Your request to "), ftc(ChatFormatting.GREEN, tp.getSubject()), ftc(ChatFormatting.GOLD, " has timed out after not being accepted."));
         }
     }
 
@@ -229,16 +224,16 @@ public class QuickTeleportsMod {
         ServerPlayer tper = server.getPlayerList().getPlayerByName(tp.getRequester());
         ServerPlayer target = server.getPlayerList().getPlayerByName(tp.getSubject());
         if(target != null) {
-            sendMessage(target.createCommandSourceStack(), true, new FTC(ChatFormatting.GOLD, "Teleport request from "), new FTC(ChatFormatting.GREEN, tp.getRequester()), new FTC(ChatFormatting.GOLD, " has been cancelled."));
+            sendMessage(target.createCommandSourceStack(), true, ftc(ChatFormatting.GOLD, "Teleport request from "), ftc(ChatFormatting.GREEN, tp.getRequester()), ftc(ChatFormatting.GOLD, " has been cancelled."));
         }
         if(tper != null) {
-            sendMessage(tper.createCommandSourceStack(), true, new FTC(ChatFormatting.GOLD, "Your request to "), new FTC(ChatFormatting.GREEN, tp.getSubject()), new FTC(ChatFormatting.GOLD, " has been cancelled."));
+            sendMessage(tper.createCommandSourceStack(), true, ftc(ChatFormatting.GOLD, "Your request to "), ftc(ChatFormatting.GREEN, tp.getSubject()), ftc(ChatFormatting.GOLD, " has been cancelled."));
         }
     }
 
-    public static void sendMessage(CommandSourceStack source, boolean success, TextComponent... styled) {
+    public static void sendMessage(CommandSourceStack source, boolean success, MutableComponent... styled) {
         if(styled.length > 0) {
-            TextComponent comp = styled[0];
+            MutableComponent comp = styled[0];
             if(styled.length > 1) {
                 for(int i = 1; i < styled.length; i++) {
                     comp.append(styled[i]);

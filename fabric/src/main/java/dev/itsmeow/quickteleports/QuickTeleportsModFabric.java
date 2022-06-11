@@ -10,7 +10,7 @@ import io.github.fablabsmc.fablabs.api.fiber.v1.tree.ConfigBranch;
 import io.github.fablabsmc.fablabs.api.fiber.v1.tree.ConfigTree;
 import io.github.fablabsmc.fablabs.api.fiber.v1.tree.PropertyMirror;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -29,7 +29,7 @@ public class QuickTeleportsModFabric implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        CommandRegistrationCallback.EVENT.register((commandDispatcher, dedicated) -> QuickTeleportsMod.registerCommands(commandDispatcher));
+        CommandRegistrationCallback.EVENT.register((commandDispatcher, registryAccess, environment) -> QuickTeleportsMod.registerCommands(commandDispatcher));
         ServerTickEvents.START_SERVER_TICK.register(QuickTeleportsMod::serverTick);
         ServerLifecycleEvents.SERVER_STARTING.register(state -> {
             ConfigTreeBuilder builder = ConfigTree.builder().withName(QuickTeleportsMod.MOD_ID).beginValue(QuickTeleportsMod.CONFIG_FIELD_NAME, TYPE, QuickTeleportsMod.CONFIG_FIELD_VALUE).withComment(QuickTeleportsMod.CONFIG_FIELD_COMMENT).finishValue(teleportRequestTimeout::mirror);
