@@ -68,6 +68,9 @@ public class CommandTpHere extends CommandBase {
 	@Override
 	public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args,
 			BlockPos targetPos) {
+				        if(args.length > 0) {
+            return Arrays.stream(server.getOnlinePlayerNames()).filter(playerName -> playerName.startsWith(args[0])).collect(Collectors.toList());
+        }
 		return Arrays.<String>asList(server.getPlayerList().getOnlinePlayerNames());
 	}
 
